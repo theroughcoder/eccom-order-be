@@ -1,4 +1,4 @@
-package be.ecom_backend.model;
+package be.ecom_order_be.model;
 
 import lombok.Data;
 
