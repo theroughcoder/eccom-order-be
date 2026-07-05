@@ -1,24 +1,15 @@
 package be.ecom_order_be.dto.response;
 
 import be.ecom_order_be.model.DeliveryStatus;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class OrderResponse {
     private Long id;
-    private Long productId;
-    private String slug;
-    private String image;
-    private String name;
-    private double rating;
-    private int numReviews;
-    private double price;
-    private int countInStock;
-    private String category;
-    private String description;
-    private int quantity;
     private ShippingAddressResponse shippingAddress;
     private String paymentMethod;
     private double itemsPrice;
@@ -31,4 +22,19 @@ public class OrderResponse {
     private boolean isDelivered;
     private LocalDateTime deliveredAt;
     private LocalDateTime createdAt;
+    private String paymentIntentId;
+    private String clientSecret;
+    private List<OrderItemResponse> orderItems;
+
+    // Lombok generates isPaid()/isDelivered() getters for these boolean fields, which Jackson
+    // would otherwise serialize as "paid"/"delivered" (stripping the "is") instead of "isPaid"/"isDelivered".
+    @JsonProperty("isPaid")
+    public boolean isPaid() {
+        return isPaid;
+    }
+
+    @JsonProperty("isDelivered")
+    public boolean isDelivered() {
+        return isDelivered;
+    }
 }

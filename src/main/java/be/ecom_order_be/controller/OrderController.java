@@ -1,5 +1,6 @@
 package be.ecom_order_be.controller;
 
+import be.ecom_order_be.dto.request.MarkOrderPaidRequest;
 import be.ecom_order_be.dto.request.OrderRequest;
 import be.ecom_order_be.dto.response.OrderHistoryResponse;
 import be.ecom_order_be.dto.response.OrderResponse;
@@ -22,10 +23,21 @@ public class OrderController {
         return orderService.getOrderHistory(authHeader);
     }
 
+    @GetMapping("/{id}")
+    public OrderResponse getOrderDetail(@RequestHeader("Authorization") String authHeader,
+                                         @PathVariable Long id) {
+        return orderService.getOrderDetail(id, authHeader);
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public List<OrderResponse> createOrder(@RequestHeader("Authorization") String authHeader,
-                                           @RequestBody OrderRequest request) {
+    public OrderResponse createOrder(@RequestHeader("Authorization") String authHeader,
+                                     @RequestBody OrderRequest request) {
         return orderService.createOrder(request, authHeader);
+    }
+
+    @PutMapping("/{id}/pay")
+    public void markOrderPaid(@PathVariable Long id, @RequestBody MarkOrderPaidRequest request) {
+        orderService.markOrderPaid(id, request);
     }
 }

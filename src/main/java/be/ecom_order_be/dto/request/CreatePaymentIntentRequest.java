@@ -1,0 +1,10 @@
+package be.ecom_order_be.dto.request;
+
+import lombok.Data;
+
+@Data
+public class CreatePaymentIntentRequest {
+    private String orderId;
+    private double amount;
+    private String currency;
+}

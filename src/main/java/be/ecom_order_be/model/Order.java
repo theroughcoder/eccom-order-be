@@ -5,6 +5,8 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "orders")
@@ -15,20 +17,11 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long productId;
-    private String slug;
-    private String image;
-    private String name;
-    private double rating;
-    private int numReviews;
-    private double price;
-    private int countInStock;
-    private String category;
+    private String paymentIntentId;
+    private String clientSecret;
 
-    @Column(columnDefinition = "TEXT")
-    private String description;
-
-    private int quantity;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<OrderItem> orderItems = new ArrayList<>();
 
     @Embedded
     private ShippingAddress shippingAddress;
