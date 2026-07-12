@@ -12,6 +12,7 @@ import be.ecom_order_be.dto.response.OrderItemResponse;
 import be.ecom_order_be.dto.response.OrderResponse;
 import be.ecom_order_be.dto.response.PaymentIntentResponse;
 import be.ecom_order_be.dto.response.ShippingAddressResponse;
+import be.ecom_order_be.kafka.OrderEventPublisher;
 import be.ecom_order_be.model.DeliveryStatus;
 import be.ecom_order_be.model.Order;
 import be.ecom_order_be.model.OrderItem;
@@ -19,6 +20,7 @@ import be.ecom_order_be.model.ShippingAddress;
 import be.ecom_order_be.repository.OrderRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yourapp.events.order.OrderPlacedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -26,9 +28,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -39,6 +44,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductServiceClient productServiceClient;
     private final PaymentServiceClient paymentServiceClient;
+    private final OrderEventPublisher orderEventPublisher;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public List<OrderHistoryResponse> getOrderHistory(String authHeader) {
@@ -145,7 +151,29 @@ public class OrderService {
         savedOrder.setClientSecret(paymentIntent.getClientSecret());
         Order finalOrder = orderRepository.save(savedOrder);
 
+        orderEventPublisher.publishOrderPlaced(toOrderPlacedEvent(finalOrder, userId));
+
         return mapToResponse(finalOrder);
+    }
+
+    private OrderPlacedEvent toOrderPlacedEvent(Order order, String userId) {
+        List<com.yourapp.events.common.OrderItem> eventItems = order.getOrderItems().stream()
+                .map(item -> new com.yourapp.events.common.OrderItem(
+                        item.getProductId().toString(),
+                        item.getName(),
+                        item.getQuantity(),
+                        BigDecimal.valueOf(item.getPrice())
+                )).collect(Collectors.toList());
+
+        return new OrderPlacedEvent(
+                UUID.randomUUID(),
+                Instant.now(),
+                order.getId().toString(),
+                userId,
+                eventItems,
+                BigDecimal.valueOf(order.getTotalPrice()),
+                "INR"
+        );
     }
 
     public OrderResponse getOrderDetail(Long id, String authHeader) {
