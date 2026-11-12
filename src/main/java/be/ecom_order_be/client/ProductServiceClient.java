@@ -1,6 +1,7 @@
 package be.ecom_order_be.client;
 
 import be.ecom_order_be.dto.request.ValidateProducStockCountRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -10,9 +11,10 @@ import org.springframework.web.client.RestClient;
 public class ProductServiceClient {
     private final RestClient restClient;
 
-    public ProductServiceClient(RestClient.Builder restClientBuilder) {
-        this.restClient = restClientBuilder
-                .baseUrl("http://ECOM-PRODUCT-BE")  // Eureka service name
+    public ProductServiceClient(RestClient.Builder restClientBuilder,
+                                @Value("${services.product.url}") String productServiceUrl) {
+        this.restClient = restClientBuilder.clone()
+                .baseUrl(productServiceUrl)  // direct URL, no Eureka lookup
                 .build();
     }
 
